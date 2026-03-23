@@ -88,7 +88,8 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
           className="bg-card rounded-2xl shadow-elevated p-5 flex flex-col items-center text-center">
           <div className="relative mb-3">
             <img src={profile?.avatar_url || avatarWalker} alt={displayName} className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20" />
-            <button className="absolute bottom-0 right-0 w-7 h-7 rounded-full gradient-primary flex items-center justify-center border-2 border-card">
+            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleAvatarChange} className="hidden" />
+            <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 right-0 w-7 h-7 rounded-full gradient-primary flex items-center justify-center border-2 border-card">
               <Camera className="w-3.5 h-3.5 text-white" />
             </button>
           </div>
