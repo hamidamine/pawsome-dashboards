@@ -1,22 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { Dog, Footprints } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
-import { useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const { data: profileData } = useProfile();
-
-  const userType = profileData?.user_type || profile?.user_type;
-
-  // Auto-redirect if user has a type
-  useEffect(() => {
-    if (userType === "owner") navigate("/owner", { replace: true });
-    else if (userType === "walker") navigate("/walker", { replace: true });
-  }, [userType, navigate]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 gap-10 relative overflow-hidden">
@@ -29,7 +16,7 @@ const Index = () => {
         <h1 className="text-3xl font-black text-foreground">
           Dog<span className="text-gradient-primary">Walking</span> Hub
         </h1>
-        <p className="text-muted-foreground font-semibold">Bienvenue {profileData?.first_name || ""} !</p>
+        <p className="text-muted-foreground font-semibold">Choisissez votre profil</p>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md z-10">
