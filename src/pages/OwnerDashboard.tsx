@@ -18,6 +18,7 @@ import { useBookings } from "@/hooks/useBookings";
 import { useNearbyWalkers } from "@/hooks/useNearbyWalkers";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import dogGolden from "@/assets/dog-golden.jpg";
 
 const OwnerDashboard = () => {
