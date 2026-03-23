@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import dogGolden from "@/assets/dog-golden.jpg";
 
 const OwnerDashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { data: dogs = [], isLoading: dogsLoading } = useDogs();
