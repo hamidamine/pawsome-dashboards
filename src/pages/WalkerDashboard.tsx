@@ -5,12 +5,20 @@ import StatsRow from "@/components/dashboard/StatsRow";
 import BadgeGrid from "@/components/dashboard/BadgeGrid";
 import ReviewCard from "@/components/dashboard/ReviewCard";
 import BottomNav from "@/components/dashboard/BottomNav";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import WeatherWidget from "@/components/dashboard/WeatherWidget";
+import EarningsCard from "@/components/dashboard/EarningsCard";
+import AvailabilityToggle from "@/components/dashboard/AvailabilityToggle";
+import ActiveMissionCard from "@/components/dashboard/ActiveMissionCard";
+import QuickActions from "@/components/dashboard/QuickActions";
+import UpcomingBookings from "@/components/dashboard/UpcomingBookings";
 
 const WalkerDashboard = () => {
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
       {/* Hero */}
       <div className="relative">
+        <DashboardHeader title="🐾 DogWalking Hub" notificationCount={3} />
         <img src={walkerHero} alt="Promeneur avec chiens" className="w-full h-56 object-cover" width={800} height={512} />
         <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4">
           <div className="bg-card rounded-2xl shadow-card p-4 flex items-center gap-4">
@@ -35,6 +43,12 @@ const WalkerDashboard = () => {
 
       {/* Content */}
       <div className="px-4 mt-14 space-y-4">
+        {/* Availability */}
+        <AvailabilityToggle />
+
+        {/* Quick Actions */}
+        <QuickActions role="walker" />
+
         {/* About */}
         <div className="bg-card rounded-2xl shadow-card p-4">
           <h2 className="font-bold text-foreground mb-1">À propos de moi</h2>
@@ -44,6 +58,18 @@ const WalkerDashboard = () => {
           </p>
         </div>
 
+        {/* Active Mission */}
+        <ActiveMissionCard
+          dogName="Rex"
+          ownerName="Marie P."
+          startTime="14:30"
+          location="Parc des Buttes-Chaumont"
+          status="en_cours"
+        />
+
+        {/* Earnings */}
+        <EarningsCard today={45} week={280} month={1120} trend={12} />
+
         {/* Stats */}
         <StatsRow
           stats={[
@@ -52,6 +78,16 @@ const WalkerDashboard = () => {
             { value: "4.9", label: "Note", isStar: true },
           ]}
         />
+
+        {/* Weather */}
+        <WeatherWidget
+          temp={18}
+          condition="sunny"
+          recommendation="Temps idéal pour une longue promenade !"
+        />
+
+        {/* Upcoming Bookings */}
+        <UpcomingBookings />
 
         {/* Badges */}
         <BadgeGrid />
@@ -76,7 +112,7 @@ const WalkerDashboard = () => {
 
         {/* CTA */}
         <button className="w-full py-4 rounded-2xl bg-cta text-cta-foreground font-bold text-lg shadow-card hover:opacity-90 transition-opacity">
-          Réserver une Promenade
+          Démarrer une Mission
         </button>
       </div>
 
