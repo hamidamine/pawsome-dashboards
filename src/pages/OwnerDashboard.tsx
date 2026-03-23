@@ -12,6 +12,7 @@ import NearbyWalkerCard from "@/components/dashboard/NearbyWalkerCard";
 import WalkReportCard from "@/components/dashboard/WalkReportCard";
 import UpcomingBookings from "@/components/dashboard/UpcomingBookings";
 import { CheckCircle2, TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
 
 const OwnerDashboard = () => {
   return (
@@ -19,111 +20,97 @@ const OwnerDashboard = () => {
       {/* Hero */}
       <div className="relative">
         <DashboardHeader title="🐾 DogWalking Hub" notificationCount={2} />
-        <img src={walkerHero} alt="Mes chiens" className="w-full h-52 object-cover" width={800} height={512} />
+        <img src={walkerHero} alt="Mes chiens" className="w-full h-56 object-cover" width={800} height={512} />
+        <div className="absolute inset-0 gradient-hero" />
         <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4">
-          <div className="bg-card rounded-2xl shadow-card p-4 flex items-center gap-4">
-            <img
-              src={avatarWalker}
-              alt="Hamid"
-              className="w-16 h-16 rounded-full object-cover border-4 border-primary"
-            />
-            <div>
-              <h1 className="text-xl font-extrabold text-foreground">Hamid</h1>
-              <p className="text-sm text-muted-foreground">Propriétaire de 2 chiens</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl shadow-elevated p-4 flex items-center gap-4"
+          >
+            <div className="relative">
+              <img src={avatarWalker} alt="Hamid" className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full gradient-accent border-2 border-card flex items-center justify-center">
+                <span className="text-[8px] text-white">✓</span>
+              </div>
             </div>
-          </div>
+            <div>
+              <h1 className="text-xl font-black text-foreground">Hamid</h1>
+              <p className="text-sm text-muted-foreground font-semibold">Propriétaire de 2 chiens</p>
+            </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Content */}
       <div className="px-4 mt-14 space-y-4">
-        {/* Profile complete badge */}
-        <div className="bg-accent text-accent-foreground rounded-2xl p-3 flex items-center justify-center gap-2 font-bold shadow-card">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="gradient-accent text-white rounded-2xl p-3.5 flex items-center justify-center gap-2 font-bold shadow-card"
+        >
           <CheckCircle2 className="w-5 h-5" />
           Profil Complet 100%
-        </div>
+        </motion.div>
 
-        {/* Quick Actions */}
         <QuickActions role="owner" />
 
-        {/* Dogs */}
         <div className="grid grid-cols-2 gap-3">
           <DogCard name="Max" breed="Golden Retriever" image={dogGolden} emoji="🐕" status="Actif" />
           <DogCard name="Bella" breed="Caniche" image={dogPoodle} emoji="🐩" status="Disponible" />
         </div>
 
-        {/* Dog Stats */}
-        <div className="bg-card rounded-2xl shadow-card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-2xl shadow-card p-4"
+        >
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-foreground">Activité de vos chiens</h3>
-            <div className="flex items-center gap-1 text-accent text-xs font-semibold">
+            <h3 className="font-bold text-foreground">📊 Activité de vos chiens</h3>
+            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-accent/10 text-accent text-xs font-bold">
               <TrendingUp className="w-3.5 h-3.5" />
               Cette semaine
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { value: "12", label: "Balades", sub: "ce mois" },
-              { value: "18km", label: "Distance", sub: "totale" },
-              { value: "6h", label: "Temps", sub: "de balade" },
+              { value: "12", label: "Balades", gradient: "gradient-primary" },
+              { value: "18km", label: "Distance", gradient: "gradient-accent" },
+              { value: "6h", label: "Temps", gradient: "gradient-passion" },
             ].map((s) => (
-              <div key={s.label} className="bg-muted rounded-xl p-3 flex flex-col items-center">
-                <span className="text-lg font-extrabold text-foreground">{s.value}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">{s.label}</span>
-                <span className="text-[9px] text-muted-foreground">{s.sub}</span>
+              <div key={s.label} className="bg-muted/50 rounded-xl p-3 flex flex-col items-center gap-1">
+                <span className="text-lg font-black text-foreground">{s.value}</span>
+                <span className="text-[9px] text-muted-foreground font-semibold">{s.label}</span>
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Weather */}
-        <WeatherWidget
-          temp={18}
-          condition="sunny"
-          recommendation="Parfait pour promener Max et Bella !"
-        />
-
-        {/* Current booking */}
+        <WeatherWidget temp={18} condition="sunny" recommendation="Parfait pour promener Max et Bella !" />
         <BookingCard title="Promenade aujourd'hui 14:30" time="14:30" duration="30 minutes" />
-
-        {/* Upcoming Bookings */}
         <UpcomingBookings />
 
-        {/* Last Walk Report */}
         <WalkReportCard
           date="23 Mars 2026"
-          walkerName="Hamid"
+          walkerName="Sarah M."
           dogName="Max"
           duration="35 min"
           distance="2.4 km"
           photos={4}
         />
 
-        {/* Nearby Walkers */}
-        <div className="space-y-2">
-          <h3 className="font-bold text-foreground px-1">Promeneurs à proximité</h3>
-          <NearbyWalkerCard
-            name="Sarah M."
-            rating={4.8}
-            reviews={92}
-            distance="500m"
-            price="15€"
-            badges={["Certifiée"]}
-          />
-          <NearbyWalkerCard
-            name="Lucas B."
-            rating={4.6}
-            reviews={45}
-            distance="1.2km"
-            price="12€"
-            badges={["Top 10%"]}
-          />
+        <div className="space-y-2.5">
+          <h3 className="font-bold text-foreground px-1">🏃 Promeneurs à proximité</h3>
+          <NearbyWalkerCard name="Sarah M." rating={4.8} reviews={92} distance="500m" price="15€" badges={["Certifiée"]} />
+          <NearbyWalkerCard name="Lucas B." rating={4.6} reviews={45} distance="1.2km" price="12€" badges={["Top 10%"]} />
         </div>
 
-        {/* CTA */}
-        <button className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg shadow-card hover:opacity-90 transition-opacity">
-          Réserver une Promenade
-        </button>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          className="w-full py-4 rounded-2xl gradient-primary text-white font-black text-lg shadow-glow-primary hover:opacity-90 transition-opacity"
+        >
+          🐕 Réserver une Promenade
+        </motion.button>
       </div>
 
       <BottomNav role="owner" />

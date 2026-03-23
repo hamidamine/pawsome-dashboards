@@ -1,35 +1,55 @@
 import { useState } from "react";
-import { MapPin } from "lucide-react";
+import { MapPin, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AvailabilityToggle = () => {
   const [available, setAvailable] = useState(true);
 
   return (
-    <div className="bg-card rounded-2xl shadow-card p-4 flex items-center justify-between">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`rounded-2xl shadow-card p-4 flex items-center justify-between transition-colors duration-300 ${
+        available ? "bg-accent/8 border border-accent/20" : "bg-card border border-border"
+      }`}
+    >
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${available ? "bg-accent/15" : "bg-muted"}`}>
-          <MapPin className={`w-5 h-5 ${available ? "text-accent" : "text-muted-foreground"}`} />
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
+          available ? "gradient-accent shadow-card" : "bg-muted"
+        }`}>
+          {available ? (
+            <Zap className="w-5 h-5 text-white" />
+          ) : (
+            <MapPin className="w-5 h-5 text-muted-foreground" />
+          )}
         </div>
         <div>
           <span className="font-bold text-foreground text-sm">
-            {available ? "Disponible" : "Indisponible"}
+            {available ? "🟢 Disponible" : "⚫ Indisponible"}
           </span>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[10px] text-muted-foreground mt-0.5">
             {available ? "Vous recevez des demandes" : "Vous ne recevez plus de demandes"}
           </p>
         </div>
       </div>
       <button
         onClick={() => setAvailable(!available)}
-        className={`relative w-12 h-7 rounded-full transition-colors ${available ? "bg-accent" : "bg-muted"}`}
+        className={`relative w-13 h-7 rounded-full transition-all duration-300 ${
+          available ? "gradient-accent" : "bg-muted"
+        }`}
+        style={{ width: 52 }}
       >
-        <span
-          className={`absolute top-0.5 w-6 h-6 rounded-full bg-card shadow transition-transform ${
-            available ? "left-[22px]" : "left-0.5"
-          }`}
-        />
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={available ? "on" : "off"}
+            layout
+            className="absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-card"
+            style={{ left: available ? 27 : 3 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          />
+        </AnimatePresence>
       </button>
-    </div>
+    </motion.div>
   );
 };
 
