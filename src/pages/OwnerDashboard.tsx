@@ -174,6 +174,7 @@ const OwnerDashboard = () => {
 
         <motion.button
           whileTap={{ scale: 0.97 }}
+          onClick={() => navigate("/owner/reserver")}
           className="w-full py-4 rounded-2xl gradient-primary text-white font-black text-lg shadow-glow-primary hover:opacity-90 transition-opacity"
         >
           🐕 Réserver une Promenade
