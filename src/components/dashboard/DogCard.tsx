@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 interface DogCardProps {
   name: string;
   breed: string;
@@ -7,26 +9,32 @@ interface DogCardProps {
 }
 
 const DogCard = ({ name, breed, image, emoji, status }: DogCardProps) => (
-  <div className="bg-card rounded-2xl shadow-card overflow-hidden">
-    <img src={image} alt={name} className="w-full aspect-square object-cover" loading="lazy" />
+  <motion.div
+    whileHover={{ y: -3 }}
+    className="bg-card rounded-2xl shadow-card overflow-hidden group"
+  >
+    <div className="relative">
+      <img src={image} alt={name} className="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+      <div className="absolute inset-0 gradient-hero opacity-30" />
+    </div>
     <div className="p-3">
-      <div className="flex items-center gap-1">
-        <span className="text-lg">{emoji}</span>
-        <span className="font-bold text-foreground">{name}</span>
-        <span className="text-lg">{emoji}</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-base">{emoji}</span>
+        <span className="font-extrabold text-foreground">{name}</span>
       </div>
-      <p className="text-xs text-muted-foreground">{breed}</p>
+      <p className="text-[11px] text-muted-foreground mt-0.5">{breed}</p>
       <span
-        className={`inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+        className={`inline-flex items-center gap-1 mt-2 text-[10px] font-bold px-2.5 py-1 rounded-full ${
           status === "Actif"
-            ? "bg-accent/15 text-accent"
-            : "bg-passion/15 text-passion"
+            ? "bg-accent/12 text-accent"
+            : "bg-passion/12 text-passion"
         }`}
       >
-        ● {status}
+        <span className={`w-1.5 h-1.5 rounded-full ${status === "Actif" ? "bg-accent" : "bg-passion"}`} />
+        {status}
       </span>
     </div>
-  </div>
+  </motion.div>
 );
 
 export default DogCard;

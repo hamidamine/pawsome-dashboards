@@ -1,4 +1,5 @@
 import { Sun, CloudRain, Cloud, Thermometer } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface WeatherWidgetProps {
   temp: number;
@@ -12,22 +13,31 @@ const icons = {
   rainy: CloudRain,
 };
 
+const conditionLabels = {
+  sunny: "☀️ Ensoleillé",
+  cloudy: "☁️ Nuageux",
+  rainy: "🌧️ Pluvieux",
+};
+
 const WeatherWidget = ({ temp, condition, recommendation }: WeatherWidgetProps) => {
   const Icon = icons[condition];
   return (
-    <div className="bg-card rounded-2xl shadow-card p-4 flex items-center gap-3">
-      <div className="w-12 h-12 rounded-xl bg-warning/15 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-warning" />
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-2xl shadow-card p-4 flex items-center gap-3"
+    >
+      <div className="w-12 h-12 rounded-xl gradient-passion flex items-center justify-center shadow-card">
+        <Icon className="w-6 h-6 text-white" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <Thermometer className="w-4 h-4 text-muted-foreground" />
-          <span className="font-bold text-foreground">{temp}°C</span>
-          <span className="text-xs text-muted-foreground capitalize">{condition === "sunny" ? "Ensoleillé" : condition === "cloudy" ? "Nuageux" : "Pluvieux"}</span>
+          <span className="font-black text-foreground text-lg">{temp}°</span>
+          <span className="text-xs text-muted-foreground font-semibold">{conditionLabels[condition]}</span>
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">{recommendation}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{recommendation}</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
