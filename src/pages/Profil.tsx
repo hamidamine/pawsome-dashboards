@@ -37,12 +37,21 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
   const { data: dogs = [] } = useDogs();
   const { data: bookings = [] } = useBookings(role);
   const updateProfile = useUpdateProfile();
+  const { uploadAvatar } = useAvatarUpload();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [bio, setBio] = useState("");
   const [city, setCity] = useState("");
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try { await uploadAvatar(file); }
+    catch { toast.error("Erreur upload photo"); }
+  };
 
   const startEdit = () => {
     setFirstName(profile?.first_name || "");
