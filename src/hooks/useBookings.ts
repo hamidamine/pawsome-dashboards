@@ -43,7 +43,7 @@ export const useCreateBooking = () => {
 export const useUpdateBooking = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; status?: string; walker_confirmed?: boolean; owner_confirmed?: boolean }) => {
+    mutationFn: async ({ id, ...updates }: { id: string } & TablesUpdate<"bookings">) => {
       const { data, error } = await supabase.from("bookings").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
