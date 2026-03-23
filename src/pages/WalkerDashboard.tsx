@@ -13,83 +13,106 @@ import ActiveMissionCard from "@/components/dashboard/ActiveMissionCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import UpcomingBookings from "@/components/dashboard/UpcomingBookings";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile, useWalkerProfile } from "@/hooks/useProfile";
+import { useEarnings } from "@/hooks/useEarnings";
+import { useBookings } from "@/hooks/useBookings";
 
 const WalkerDashboard = () => {
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: walkerProfile } = useWalkerProfile(user?.id);
+  const { data: earnings } = useEarnings();
+  const { data: bookings = [] } = useBookings("walker");
+
+  const displayName = profile?.first_name || "Promeneur";
+  const activeMission = bookings.find(b => b.status === "in_progress");
+  const upcomingBookings = bookings
+    .filter(b => b.status === "confirmed" || b.status === "pending")
+    .slice(0, 3)
+    .map(b => ({
+      id: b.id,
+      dogName: (b as any).dogs?.name || "Chien",
+      date: b.scheduled_date,
+      time: b.scheduled_time,
+      duration: `${b.duration_minutes || 30} min`,
+      status: (b.status === "confirmed" ? "confirmée" : "en_attente") as "confirmée" | "en_attente",
+    }));
+
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
-      {/* Hero */}
       <div className="relative">
-        <DashboardHeader title="🐾 DogWalking Hub" notificationCount={3} />
+        <DashboardHeader title="🐾 DogWalking Hub" notificationCount={bookings.filter(b => b.status === "pending").length} />
         <img src={walkerHero} alt="Promeneur avec chiens" className="w-full h-60 object-cover" width={800} height={512} />
         <div className="absolute inset-0 gradient-hero" />
         <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-card rounded-2xl shadow-elevated p-4 flex items-center gap-4"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl shadow-elevated p-4 flex items-center gap-4">
             <div className="relative">
-              <img src={avatarWalker} alt="Hamid" className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
+              <img src={profile?.avatar_url || avatarWalker} alt={displayName} className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
               <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full gradient-accent border-2 border-card flex items-center justify-center">
                 <span className="text-[8px]">✓</span>
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black text-foreground">Hamid</h1>
-                <span className="text-sm text-muted-foreground font-bold">4.9 · 128 avis</span>
+                <h1 className="text-xl font-black text-foreground">{displayName}</h1>
+                <span className="text-sm text-muted-foreground font-bold">
+                  {Number(walkerProfile?.rating || 0).toFixed(1)} · {walkerProfile?.total_reviews || 0} avis
+                </span>
               </div>
               <div className="flex items-center gap-1.5 mt-1">
-                <StarRating rating={5} />
-                <span className="text-[11px] text-muted-foreground font-semibold">5 ans d'expérience</span>
+                <StarRating rating={Math.round(Number(walkerProfile?.rating || 0))} />
+                <span className="text-[11px] text-muted-foreground font-semibold">
+                  {walkerProfile?.experience_years || 0} ans d'expérience
+                </span>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* Content */}
       <div className="px-4 mt-14 space-y-4">
         <AvailabilityToggle />
         <QuickActions role="walker" />
 
-        <div className="bg-card rounded-2xl shadow-card p-4">
-          <h2 className="font-bold text-foreground mb-1">📝 À propos de moi</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Passionné des chiens depuis toujours, je suis ici pour offrir les meilleures promenades
-            à vos compagnons à quatre pattes ! Diplômé en comportement canin.
-          </p>
-        </div>
+        {profile?.bio && (
+          <div className="bg-card rounded-2xl shadow-card p-4">
+            <h2 className="font-bold text-foreground mb-1">📝 À propos de moi</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
+          </div>
+        )}
 
-        <ActiveMissionCard
-          dogName="Rex"
-          ownerName="Marie P."
-          startTime="14:30"
-          location="Parc des Buttes-Chaumont"
-          status="en_cours"
+        {activeMission && (
+          <ActiveMissionCard
+            dogName={(activeMission as any).dogs?.name || "Chien"}
+            ownerName="Client"
+            startTime={activeMission.scheduled_time}
+            location={activeMission.address || "En cours"}
+            status="en_cours"
+          />
+        )}
+
+        <EarningsCard
+          today={earnings?.today || 0}
+          week={earnings?.week || 0}
+          month={earnings?.month || 0}
+          trend={earnings?.trend || 0}
         />
-
-        <EarningsCard today={45} week={280} month={1120} trend={12} />
 
         <StatsRow
           stats={[
-            { value: 128, label: "Promenades" },
-            { value: 45, label: "Chiens" },
-            { value: "4.9", label: "Note", isStar: true },
+            { value: walkerProfile?.total_walks || 0, label: "Promenades" },
+            { value: walkerProfile?.total_reviews || 0, label: "Avis" },
+            { value: Number(walkerProfile?.rating || 0).toFixed(1), label: "Note", isStar: true },
           ]}
         />
 
         <WeatherWidget temp={18} condition="sunny" recommendation="Temps idéal pour une longue promenade !" />
 
-        <UpcomingBookings />
-        <BadgeGrid />
+        {upcomingBookings.length > 0 && <UpcomingBookings bookings={upcomingBookings} />}
 
-        <div className="bg-card rounded-2xl shadow-card p-4">
-          <h3 className="font-bold text-foreground mb-3">⭐ Avis récents</h3>
-          <ReviewCard name="Sophie L." avatar={avatarWalker} rating={5} text="Hamid est super avec mon chien! Très professionnel et attentionné." date="Il y a 2j" />
-          <div className="border-t border-border" />
-          <ReviewCard name="Marc D." avatar={avatarWalker} rating={5} text="Excellent service, mon chien adore ses promenades avec Hamid !" date="Il y a 5j" />
-        </div>
+        <BadgeGrid />
 
         <motion.button
           whileTap={{ scale: 0.97 }}
