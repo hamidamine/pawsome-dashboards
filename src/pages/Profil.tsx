@@ -1,12 +1,13 @@
 import BottomNav from "@/components/dashboard/BottomNav";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
-import { MapPin, Star, Shield, Calendar, Settings, LogOut, ChevronRight, Edit3, Camera } from "lucide-react";
+import { MapPin, Star, Shield, Calendar, Settings, LogOut, ChevronRight, Edit3, Camera, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile, useWalkerProfile } from "@/hooks/useProfile";
 import { useDogs } from "@/hooks/useDogs";
 import { useBookings } from "@/hooks/useBookings";
-import { useState } from "react";
+import { useAvatarUpload } from "@/hooks/useUpload";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import avatarWalker from "@/assets/avatar-walker.jpg";
@@ -36,12 +37,21 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
   const { data: dogs = [] } = useDogs();
   const { data: bookings = [] } = useBookings(role);
   const updateProfile = useUpdateProfile();
+  const { uploadAvatar } = useAvatarUpload();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [bio, setBio] = useState("");
   const [city, setCity] = useState("");
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try { await uploadAvatar(file); }
+    catch { toast.error("Erreur upload photo"); }
+  };
 
   const startEdit = () => {
     setFirstName(profile?.first_name || "");
@@ -78,7 +88,8 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
           className="bg-card rounded-2xl shadow-elevated p-5 flex flex-col items-center text-center">
           <div className="relative mb-3">
             <img src={profile?.avatar_url || avatarWalker} alt={displayName} className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20" />
-            <button className="absolute bottom-0 right-0 w-7 h-7 rounded-full gradient-primary flex items-center justify-center border-2 border-card">
+            <input type="file" ref={fileInputRef} accept="image/*" onChange={handleAvatarChange} className="hidden" />
+            <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 right-0 w-7 h-7 rounded-full gradient-primary flex items-center justify-center border-2 border-card">
               <Camera className="w-3.5 h-3.5 text-white" />
             </button>
           </div>
@@ -170,7 +181,8 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
 
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <ProfileSection title="⚙️ Paramètres">
-            <MenuItem icon={Calendar} label="Mes réservations" value={String(pendingBookings)} />
+            <MenuItem icon={Calendar} label="Mes réservations" value={String(pendingBookings)} onClick={() => navigate(`/${role}/historique`)} />
+            <MenuItem icon={History} label="Historique" onClick={() => navigate(`/${role}/historique`)} />
             <MenuItem icon={MapPin} label="Adresse" value={profile?.city || "Non défini"} />
             <MenuItem icon={Shield} label="Sécurité" value="Vérifié" />
             <MenuItem icon={Settings} label="Préférences" />

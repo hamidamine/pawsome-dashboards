@@ -18,9 +18,11 @@ import { useBookings } from "@/hooks/useBookings";
 import { useNearbyWalkers } from "@/hooks/useNearbyWalkers";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import dogGolden from "@/assets/dog-golden.jpg";
 
 const OwnerDashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { data: dogs = [], isLoading: dogsLoading } = useDogs();
@@ -172,6 +174,7 @@ const OwnerDashboard = () => {
 
         <motion.button
           whileTap={{ scale: 0.97 }}
+          onClick={() => navigate("/owner/reserver")}
           className="w-full py-4 rounded-2xl gradient-primary text-white font-black text-lg shadow-glow-primary hover:opacity-90 transition-opacity"
         >
           🐕 Réserver une Promenade
