@@ -181,7 +181,8 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
 
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <ProfileSection title="⚙️ Paramètres">
-            <MenuItem icon={Calendar} label="Mes réservations" value={String(pendingBookings)} />
+            <MenuItem icon={Calendar} label="Mes réservations" value={String(pendingBookings)} onClick={() => navigate(`/${role}/historique`)} />
+            <MenuItem icon={History} label="Historique" onClick={() => navigate(`/${role}/historique`)} />
             <MenuItem icon={MapPin} label="Adresse" value={profile?.city || "Non défini"} />
             <MenuItem icon={Shield} label="Sécurité" value="Vérifié" />
             <MenuItem icon={Settings} label="Préférences" />
