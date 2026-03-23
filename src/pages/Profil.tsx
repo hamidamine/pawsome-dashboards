@@ -1,12 +1,13 @@
 import BottomNav from "@/components/dashboard/BottomNav";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
-import { MapPin, Star, Shield, Calendar, Settings, LogOut, ChevronRight, Edit3, Camera } from "lucide-react";
+import { MapPin, Star, Shield, Calendar, Settings, LogOut, ChevronRight, Edit3, Camera, History } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile, useWalkerProfile } from "@/hooks/useProfile";
 import { useDogs } from "@/hooks/useDogs";
 import { useBookings } from "@/hooks/useBookings";
-import { useState } from "react";
+import { useAvatarUpload } from "@/hooks/useUpload";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import avatarWalker from "@/assets/avatar-walker.jpg";
