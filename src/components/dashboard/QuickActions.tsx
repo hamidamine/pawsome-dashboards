@@ -1,29 +1,34 @@
 import { Calendar, MapPin, Clock, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface QuickAction {
   icon: LucideIcon;
   label: string;
   gradient: string;
+  path?: string;
 }
 
-const ownerActions: QuickAction[] = [
-  { icon: Calendar, label: "Réserver", gradient: "gradient-primary" },
-  { icon: MapPin, label: "Tracking", gradient: "gradient-accent" },
-  { icon: Clock, label: "Historique", gradient: "gradient-passion" },
-  { icon: Star, label: "Favoris", gradient: "gradient-community" },
-];
-
-const walkerActions: QuickAction[] = [
-  { icon: Calendar, label: "Planning", gradient: "gradient-primary" },
-  { icon: MapPin, label: "Carte", gradient: "gradient-accent" },
-  { icon: Clock, label: "Historique", gradient: "gradient-passion" },
-  { icon: Star, label: "Avis", gradient: "gradient-community" },
-];
-
 const QuickActions = ({ role }: { role: "owner" | "walker" }) => {
+  const navigate = useNavigate();
+
+  const ownerActions: QuickAction[] = [
+    { icon: Calendar, label: "Réserver", gradient: "gradient-primary", path: "/owner/reserver" },
+    { icon: MapPin, label: "Tracking", gradient: "gradient-accent" },
+    { icon: Clock, label: "Historique", gradient: "gradient-passion", path: "/owner/historique" },
+    { icon: Star, label: "Favoris", gradient: "gradient-community", path: "/owner/favoris" },
+  ];
+
+  const walkerActions: QuickAction[] = [
+    { icon: Calendar, label: "Planning", gradient: "gradient-primary", path: "/walker/historique" },
+    { icon: MapPin, label: "Carte", gradient: "gradient-accent" },
+    { icon: Clock, label: "Historique", gradient: "gradient-passion", path: "/walker/historique" },
+    { icon: Star, label: "Avis", gradient: "gradient-community" },
+  ];
+
   const actions = role === "owner" ? ownerActions : walkerActions;
+
   return (
     <div className="grid grid-cols-4 gap-2">
       {actions.map((action, i) => (
@@ -33,6 +38,7 @@ const QuickActions = ({ role }: { role: "owner" | "walker" }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.06 }}
           whileTap={{ scale: 0.93 }}
+          onClick={() => action.path && navigate(action.path)}
           className="bg-card rounded-2xl shadow-card p-3 flex flex-col items-center gap-2 hover:shadow-card-hover transition-shadow"
         >
           <div className={`w-11 h-11 rounded-xl ${action.gradient} flex items-center justify-center shadow-card`}>
