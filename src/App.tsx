@@ -21,36 +21,38 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
 
-          {/* Walker routes */}
-          <Route path="/walker" element={<WalkerDashboard />} />
-          <Route path="/walker/favoris" element={<WalkerFavoris />} />
-          <Route path="/walker/messages" element={<Messages role="walker" />} />
-          <Route path="/walker/profil" element={<Profil role="walker" />} />
-          <Route path="/walker/go" element={<WalkerDashboard />} />
-          <Route path="/walker/notifications" element={<Notifications role="walker" />} />
-          <Route path="/walker/historique" element={<BookingHistory role="walker" />} />
-          <Route path="/walker/onboarding" element={<WalkerOnboarding />} />
+            {/* Walker routes */}
+            <Route path="/walker" element={<WalkerDashboard />} />
+            <Route path="/walker/favoris" element={<WalkerFavoris />} />
+            <Route path="/walker/messages" element={<Messages role="walker" />} />
+            <Route path="/walker/profil" element={<Profil role="walker" />} />
+            <Route path="/walker/go" element={<WalkerDashboard />} />
+            <Route path="/walker/notifications" element={<Notifications role="walker" />} />
+            <Route path="/walker/historique" element={<BookingHistory role="walker" />} />
+            <Route path="/walker/onboarding" element={<WalkerOnboarding />} />
 
-          {/* Owner routes */}
-          <Route path="/owner" element={<OwnerDashboard />} />
-          <Route path="/owner/favoris" element={<OwnerFavoris />} />
-          <Route path="/owner/messages" element={<Messages role="owner" />} />
-          <Route path="/owner/profil" element={<Profil role="owner" />} />
-          <Route path="/owner/notifications" element={<Notifications role="owner" />} />
-          <Route path="/owner/reserver" element={<BookingPage />} />
-          <Route path="/owner/historique" element={<BookingHistory role="owner" />} />
+            {/* Owner routes */}
+            <Route path="/owner" element={<OwnerDashboard />} />
+            <Route path="/owner/favoris" element={<OwnerFavoris />} />
+            <Route path="/owner/messages" element={<Messages role="owner" />} />
+            <Route path="/owner/profil" element={<Profil role="owner" />} />
+            <Route path="/owner/notifications" element={<Notifications role="owner" />} />
+            <Route path="/owner/reserver" element={<BookingPage />} />
+            <Route path="/owner/historique" element={<BookingHistory role="owner" />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
