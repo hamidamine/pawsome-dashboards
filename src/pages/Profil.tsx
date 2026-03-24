@@ -1,7 +1,6 @@
 import BottomNav from "@/components/dashboard/BottomNav";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
-import { MapPin, Star, Shield, Calendar, Settings, LogOut, ChevronRight, Edit3, Camera, History } from "lucide-react";
+import { MapPin, Star, Shield, Calendar, Settings, LogOut, ChevronRight, Edit3, Camera, History, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile, useWalkerProfile } from "@/hooks/useProfile";
 import { useDogs } from "@/hooks/useDogs";
@@ -11,6 +10,7 @@ import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import avatarWalker from "@/assets/avatar-walker.jpg";
+import { mockProfile, mockWalkerProfile, mockDogs, mockBookings } from "@/data/mockData";
 
 const ProfileSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="bg-card rounded-2xl shadow-card p-4">
@@ -34,8 +34,8 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
   const { signOut, user } = useAuth();
   const { data: profile } = useProfile();
   const { data: walkerProfile } = useWalkerProfile(role === "walker" ? user?.id : undefined);
-  const { data: dogs = [] } = useDogs();
-  const { data: bookings = [] } = useBookings(role);
+  const { data: realDogs = [] } = useDogs();
+  const { data: realBookings = [] } = useBookings(role);
   const updateProfile = useUpdateProfile();
   const { uploadAvatar } = useAvatarUpload();
   const navigate = useNavigate();
@@ -46,7 +46,14 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
   const [bio, setBio] = useState("");
   const [city, setCity] = useState("");
 
+  const isDemo = !user;
+  const displayProfile = isDemo ? mockProfile : profile;
+  const displayWalkerProfile = isDemo ? mockWalkerProfile : walkerProfile;
+  const dogs = isDemo ? mockDogs : realDogs;
+  const bookings = isDemo ? mockBookings : realBookings;
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isDemo) return toast.error("Connectez-vous pour modifier votre photo");
     const file = e.target.files?.[0];
     if (!file) return;
     try { await uploadAvatar(file); }
@@ -54,6 +61,7 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
   };
 
   const startEdit = () => {
+    if (isDemo) return toast.error("Connectez-vous pour modifier votre profil");
     setFirstName(profile?.first_name || "");
     setLastName(profile?.last_name || "");
     setBio(profile?.bio || "");
@@ -70,24 +78,31 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
   };
 
   const handleLogout = async () => {
+    if (isDemo) {
+      navigate("/");
+      return;
+    }
     await signOut();
     navigate("/");
   };
 
-  const displayName = profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Utilisateur" : "...";
+  const displayName = displayProfile ? `${displayProfile.first_name || ""} ${displayProfile.last_name || ""}`.trim() || "Utilisateur" : "...";
   const pendingBookings = bookings.filter(b => b.status === "pending" || b.status === "confirmed").length;
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
       <div className="gradient-primary px-4 pt-14 pb-16 relative">
-        <DashboardHeader title="👤 Profil" notificationCount={0} />
+        <button onClick={() => navigate(`/${role}`)} className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+        <h1 className="text-lg font-black text-white text-center">👤 Profil</h1>
       </div>
 
       <div className="px-4 -mt-12 space-y-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-2xl shadow-elevated p-5 flex flex-col items-center text-center">
           <div className="relative mb-3">
-            <img src={profile?.avatar_url || avatarWalker} alt={displayName} className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20" />
+            <img src={displayProfile?.avatar_url || avatarWalker} alt={displayName} className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20" />
             <input type="file" ref={fileInputRef} accept="image/*" onChange={handleAvatarChange} className="hidden" />
             <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 right-0 w-7 h-7 rounded-full gradient-primary flex items-center justify-center border-2 border-card">
               <Camera className="w-3.5 h-3.5 text-white" />
@@ -120,22 +135,22 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
               <p className="text-sm text-muted-foreground mt-0.5">
                 {role === "owner" ? `Propriétaire de ${dogs.length} chien${dogs.length > 1 ? "s" : ""}` : "Dog Walker Professionnel"}
               </p>
-              {profile?.bio && <p className="text-xs text-muted-foreground mt-1">{profile.bio}</p>}
+              {displayProfile?.bio && <p className="text-xs text-muted-foreground mt-1">{displayProfile.bio}</p>}
               <div className="flex items-center gap-3 mt-3 flex-wrap justify-center">
                 <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-bold">
                   <Shield className="w-3 h-3" />
                   Vérifié
                 </div>
-                {role === "walker" && walkerProfile && (
+                {role === "walker" && displayWalkerProfile && (
                   <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-star/15 text-star text-xs font-bold">
                     <Star className="w-3 h-3 fill-star" />
-                    {Number(walkerProfile.rating || 0).toFixed(1)}
+                    {Number(displayWalkerProfile.rating || 0).toFixed(1)}
                   </div>
                 )}
-                {profile?.city && (
+                {displayProfile?.city && (
                   <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
                     <MapPin className="w-3 h-3" />
-                    {profile.city}
+                    {displayProfile.city}
                   </div>
                 )}
               </div>
@@ -153,9 +168,9 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
             {role === "walker" ? (
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: String(walkerProfile?.total_walks || 0), label: "Balades" },
-                  { value: String(walkerProfile?.total_reviews || 0), label: "Avis" },
-                  { value: `${walkerProfile?.experience_years || 0} ans`, label: "Expérience" },
+                  { value: String(displayWalkerProfile?.total_walks || 0), label: "Balades" },
+                  { value: String(displayWalkerProfile?.total_reviews || 0), label: "Avis" },
+                  { value: `${displayWalkerProfile?.experience_years || 0} ans`, label: "Expérience" },
                 ].map((s) => (
                   <div key={s.label} className="bg-muted/60 rounded-xl p-3 flex flex-col items-center">
                     <span className="text-lg font-black text-foreground">{s.value}</span>
@@ -183,10 +198,10 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
           <ProfileSection title="⚙️ Paramètres">
             <MenuItem icon={Calendar} label="Mes réservations" value={String(pendingBookings)} onClick={() => navigate(`/${role}/historique`)} />
             <MenuItem icon={History} label="Historique" onClick={() => navigate(`/${role}/historique`)} />
-            <MenuItem icon={MapPin} label="Adresse" value={profile?.city || "Non défini"} />
+            <MenuItem icon={MapPin} label="Adresse" value={displayProfile?.city || "Non défini"} />
             <MenuItem icon={Shield} label="Sécurité" value="Vérifié" />
             <MenuItem icon={Settings} label="Préférences" />
-            <MenuItem icon={LogOut} label="Déconnexion" danger onClick={handleLogout} />
+            <MenuItem icon={LogOut} label={isDemo ? "Retour à l'accueil" : "Déconnexion"} danger onClick={handleLogout} />
           </ProfileSection>
         </motion.div>
       </div>

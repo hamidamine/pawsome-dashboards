@@ -7,16 +7,20 @@ import { useDogs } from "@/hooks/useDogs";
 import { useCreateBooking } from "@/hooks/useBookings";
 import { useNearbyWalkers } from "@/hooks/useNearbyWalkers";
 import BottomNav from "@/components/dashboard/BottomNav";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { toast } from "sonner";
 import avatarWalker from "@/assets/avatar-walker.jpg";
+import { mockDogs, mockNearbyWalkers } from "@/data/mockData";
 
 const BookingPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: dogs = [] } = useDogs();
-  const { data: walkers = [] } = useNearbyWalkers();
+  const { data: realDogs = [] } = useDogs();
+  const { data: realWalkers = [] } = useNearbyWalkers();
   const createBooking = useCreateBooking();
+
+  const isDemo = !user;
+  const dogs = isDemo ? mockDogs : realDogs;
+  const walkers = isDemo ? mockNearbyWalkers : realWalkers;
 
   const [step, setStep] = useState(1);
   const [selectedDog, setSelectedDog] = useState<string | null>(null);
@@ -30,6 +34,11 @@ const BookingPage = () => {
 
   const handleSubmit = async () => {
     if (!selectedDog || !date || !time) return toast.error("Champs requis manquants");
+    if (isDemo) {
+      toast.success("🎭 Démo — Réservation simulée avec succès !");
+      navigate("/owner");
+      return;
+    }
     try {
       await createBooking.mutateAsync({
         dog_id: selectedDog,
@@ -52,13 +61,14 @@ const BookingPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
-      <div className="gradient-primary px-4 pt-14 pb-6">
-        <DashboardHeader title="📅 Réserver" notificationCount={0} />
-        <h1 className="text-2xl font-black text-white mt-2">Nouvelle Réservation</h1>
-        <p className="text-white/70 text-sm mt-1">Étape {step}/3</p>
+      <div className="gradient-primary px-4 pt-14 pb-6 relative">
+        <button onClick={() => navigate("/owner")} className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+        <h1 className="text-2xl font-black text-white mt-2 text-center">📅 Nouvelle Réservation</h1>
+        <p className="text-white/70 text-sm mt-1 text-center">Étape {step}/3</p>
       </div>
 
-      {/* Progress bar */}
       <div className="px-4 -mt-2 mb-4">
         <div className="bg-muted rounded-full h-1.5 overflow-hidden">
           <motion.div animate={{ width: `${(step / 3) * 100}%` }} className="h-full gradient-primary rounded-full" />
@@ -66,7 +76,6 @@ const BookingPage = () => {
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Step 1: Choose dog & service */}
         {step === 1 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <div className="bg-card rounded-2xl shadow-card p-4 space-y-3">
@@ -115,7 +124,6 @@ const BookingPage = () => {
           </motion.div>
         )}
 
-        {/* Step 2: Date, time, location */}
         {step === 2 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <button onClick={() => setStep(1)} className="text-primary font-bold text-sm flex items-center gap-1">
@@ -178,7 +186,6 @@ const BookingPage = () => {
           </motion.div>
         )}
 
-        {/* Step 3: Choose walker & confirm */}
         {step === 3 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <button onClick={() => setStep(2)} className="text-primary font-bold text-sm flex items-center gap-1">
@@ -214,7 +221,6 @@ const BookingPage = () => {
               ))}
             </div>
 
-            {/* Summary */}
             <div className="bg-card rounded-2xl shadow-card p-4 space-y-2">
               <h3 className="font-bold text-foreground">📋 Résumé</h3>
               <div className="space-y-1 text-sm">

@@ -3,7 +3,6 @@ import avatarWalker from "@/assets/avatar-walker.jpg";
 import StarRating from "@/components/dashboard/StarRating";
 import StatsRow from "@/components/dashboard/StatsRow";
 import BadgeGrid from "@/components/dashboard/BadgeGrid";
-import ReviewCard from "@/components/dashboard/ReviewCard";
 import BottomNav from "@/components/dashboard/BottomNav";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import WeatherWidget from "@/components/dashboard/WeatherWidget";
@@ -17,30 +16,46 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useWalkerProfile } from "@/hooks/useProfile";
 import { useEarnings } from "@/hooks/useEarnings";
 import { useBookings } from "@/hooks/useBookings";
+import { mockWalkerProfile, mockProfile, mockBookings, mockEarnings, mockUpcomingBookings } from "@/data/mockData";
 
 const WalkerDashboard = () => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { data: walkerProfile } = useWalkerProfile(user?.id);
   const { data: earnings } = useEarnings();
-  const { data: bookings = [] } = useBookings("walker");
+  const { data: realBookings = [] } = useBookings("walker");
 
-  const displayName = profile?.first_name || "Promeneur";
-  const activeMission = bookings.find(b => b.status === "in_progress");
-  const upcomingBookings = bookings
-    .filter(b => b.status === "confirmed" || b.status === "pending")
-    .slice(0, 3)
-    .map(b => ({
-      id: b.id,
-      dogName: (b as any).dogs?.name || "Chien",
-      date: b.scheduled_date,
-      time: b.scheduled_time,
-      duration: `${b.duration_minutes || 30} min`,
-      status: (b.status === "confirmed" ? "confirmée" : "en_attente") as "confirmée" | "en_attente",
-    }));
+  const isDemo = !user;
+  const displayProfile = isDemo ? mockProfile : profile;
+  const displayWalkerProfile = isDemo ? mockWalkerProfile : walkerProfile;
+  const displayEarnings = isDemo ? mockEarnings : (earnings || { today: 0, week: 0, month: 0, trend: 0 });
+  const bookings = isDemo ? mockBookings : realBookings;
+
+  const displayName = displayProfile?.first_name || "Promeneur";
+  const activeMission = isDemo ? null : bookings.find(b => b.status === "in_progress");
+
+  const upcomingBookings = isDemo
+    ? mockUpcomingBookings
+    : bookings
+        .filter(b => b.status === "confirmed" || b.status === "pending")
+        .slice(0, 3)
+        .map(b => ({
+          id: b.id,
+          dogName: (b as any).dogs?.name || "Chien",
+          date: b.scheduled_date,
+          time: b.scheduled_time,
+          duration: `${b.duration_minutes || 30} min`,
+          status: (b.status === "confirmed" ? "confirmée" : "en_attente") as "confirmée" | "en_attente",
+        }));
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
+      {isDemo && (
+        <div className="bg-warning/10 border-b border-warning/20 px-4 py-2 text-center">
+          <span className="text-xs font-bold text-warning">🎭 Mode Démo — Connectez-vous pour vos vraies données</span>
+        </div>
+      )}
+
       <div className="relative">
         <DashboardHeader title="🐾 DogWalking Hub" notificationCount={bookings.filter(b => b.status === "pending").length} />
         <img src={walkerHero} alt="Promeneur avec chiens" className="w-full h-60 object-cover" width={800} height={512} />
@@ -49,7 +64,7 @@ const WalkerDashboard = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="bg-card rounded-2xl shadow-elevated p-4 flex items-center gap-4">
             <div className="relative">
-              <img src={profile?.avatar_url || avatarWalker} alt={displayName} className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
+              <img src={displayProfile?.avatar_url || avatarWalker} alt={displayName} className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
               <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full gradient-accent border-2 border-card flex items-center justify-center">
                 <span className="text-[8px]">✓</span>
               </div>
@@ -58,13 +73,13 @@ const WalkerDashboard = () => {
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-foreground">{displayName}</h1>
                 <span className="text-sm text-muted-foreground font-bold">
-                  {Number(walkerProfile?.rating || 0).toFixed(1)} · {walkerProfile?.total_reviews || 0} avis
+                  {Number(displayWalkerProfile?.rating || 0).toFixed(1)} · {displayWalkerProfile?.total_reviews || 0} avis
                 </span>
               </div>
               <div className="flex items-center gap-1.5 mt-1">
-                <StarRating rating={Math.round(Number(walkerProfile?.rating || 0))} />
+                <StarRating rating={Math.round(Number(displayWalkerProfile?.rating || 0))} />
                 <span className="text-[11px] text-muted-foreground font-semibold">
-                  {walkerProfile?.experience_years || 0} ans d'expérience
+                  {displayWalkerProfile?.experience_years || 0} ans d'expérience
                 </span>
               </div>
             </div>
@@ -76,10 +91,10 @@ const WalkerDashboard = () => {
         <AvailabilityToggle />
         <QuickActions role="walker" />
 
-        {profile?.bio && (
+        {displayProfile?.bio && (
           <div className="bg-card rounded-2xl shadow-card p-4">
             <h2 className="font-bold text-foreground mb-1">📝 À propos de moi</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{displayProfile.bio}</p>
           </div>
         )}
 
@@ -94,23 +109,23 @@ const WalkerDashboard = () => {
         )}
 
         <EarningsCard
-          today={earnings?.today || 0}
-          week={earnings?.week || 0}
-          month={earnings?.month || 0}
-          trend={earnings?.trend || 0}
+          today={displayEarnings.today}
+          week={displayEarnings.week}
+          month={displayEarnings.month}
+          trend={displayEarnings.trend}
         />
 
         <StatsRow
           stats={[
-            { value: walkerProfile?.total_walks || 0, label: "Promenades" },
-            { value: walkerProfile?.total_reviews || 0, label: "Avis" },
-            { value: Number(walkerProfile?.rating || 0).toFixed(1), label: "Note", isStar: true },
+            { value: displayWalkerProfile?.total_walks || 0, label: "Promenades" },
+            { value: displayWalkerProfile?.total_reviews || 0, label: "Avis" },
+            { value: Number(displayWalkerProfile?.rating || 0).toFixed(1), label: "Note", isStar: true },
           ]}
         />
 
         <WeatherWidget temp={18} condition="sunny" recommendation="Temps idéal pour une longue promenade !" />
 
-        {upcomingBookings.length > 0 && <UpcomingBookings bookings={upcomingBookings} />}
+        <UpcomingBookings bookings={upcomingBookings} />
 
         <BadgeGrid />
 

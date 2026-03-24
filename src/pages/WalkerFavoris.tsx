@@ -1,19 +1,25 @@
 import BottomNav from "@/components/dashboard/BottomNav";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Heart, ArrowLeft, Users } from "lucide-react";
 import avatarWalker from "@/assets/avatar-walker.jpg";
 import StarRating from "@/components/dashboard/StarRating";
-import { useBookings } from "@/hooks/useBookings";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBookings } from "@/hooks/useBookings";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+const mockClients = [
+  { id: "c1", name: "Marie D.", avatar: null, dogName: "Max", walks: 15, rating: 5 },
+  { id: "c2", name: "Pierre L.", avatar: null, dogName: "Bella", walks: 8, rating: 4 },
+  { id: "c3", name: "Julie M.", avatar: null, dogName: "Rocky", walks: 5, rating: 5 },
+];
+
 const WalkerFavoris = () => {
   const { user } = useAuth();
-  const { data: bookings = [] } = useBookings("walker");
+  const navigate = useNavigate();
+  const isDemo = !user;
 
-  // Get regular clients from bookings
   const { data: clients = [] } = useQuery({
     queryKey: ["walker-clients", user?.id],
     queryFn: async () => {
@@ -26,7 +32,6 @@ const WalkerFavoris = () => {
 
       if (!completedBookings) return [];
 
-      // Count walks per owner
       const ownerCounts = new Map<string, { count: number; dogName: string }>();
       for (const b of completedBookings) {
         const existing = ownerCounts.get(b.owner_id) || { count: 0, dogName: (b as any).dogs?.name || "Chien" };
@@ -58,18 +63,25 @@ const WalkerFavoris = () => {
     enabled: !!user,
   });
 
+  const displayClients = isDemo ? mockClients : clients;
+
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
-      <div className="gradient-primary px-4 pt-14 pb-6">
-        <DashboardHeader title="⭐ Favoris" notificationCount={0} />
-        <h1 className="text-2xl font-black text-white mt-2">Mes Clients Réguliers</h1>
-        <p className="text-white/70 text-sm mt-1">Vos clients fidèles et leurs compagnons</p>
+      <div className="gradient-primary px-4 pt-14 pb-6 relative">
+        <button onClick={() => navigate("/walker")} className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+        <h1 className="text-2xl font-black text-white mt-2 text-center">⭐ Mes Clients</h1>
+        <p className="text-white/70 text-sm mt-1 text-center">Vos clients fidèles et leurs compagnons</p>
       </div>
       <div className="px-4 -mt-3 space-y-3">
-        {clients.length === 0 && (
-          <div className="text-center text-muted-foreground text-sm py-10">Aucun client régulier pour le moment</div>
+        {displayClients.length === 0 && (
+          <div className="text-center py-16 space-y-3">
+            <Users className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+            <p className="text-muted-foreground text-sm">Aucun client régulier pour le moment</p>
+          </div>
         )}
-        {clients.map((client, i) => (
+        {displayClients.map((client, i) => (
           <motion.div
             key={client.id}
             initial={{ opacity: 0, y: 15 }}
