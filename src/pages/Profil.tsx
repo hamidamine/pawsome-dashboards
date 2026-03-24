@@ -71,7 +71,7 @@ const Profil = ({ role }: { role: "owner" | "walker" }) => {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/auth");
+    navigate("/");
   };
 
   const displayName = profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Utilisateur" : "...";
