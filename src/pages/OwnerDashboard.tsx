@@ -1,13 +1,11 @@
 import walkerHero from "@/assets/walker-hero.jpg";
 import avatarWalker from "@/assets/avatar-walker.jpg";
 import DogCard from "@/components/dashboard/DogCard";
-import BookingCard from "@/components/dashboard/BookingCard";
 import BottomNav from "@/components/dashboard/BottomNav";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import WeatherWidget from "@/components/dashboard/WeatherWidget";
 import QuickActions from "@/components/dashboard/QuickActions";
 import NearbyWalkerCard from "@/components/dashboard/NearbyWalkerCard";
-import WalkReportCard from "@/components/dashboard/WalkReportCard";
 import UpcomingBookings from "@/components/dashboard/UpcomingBookings";
 import { CheckCircle2, TrendingUp, Plus } from "lucide-react";
 import { motion } from "framer-motion";
@@ -20,33 +18,43 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import dogGolden from "@/assets/dog-golden.jpg";
+import { mockDogs, mockBookings, mockNearbyWalkers, mockProfile, mockUpcomingBookings } from "@/data/mockData";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: profile } = useProfile();
-  const { data: dogs = [], isLoading: dogsLoading } = useDogs();
-  const { data: bookings = [] } = useBookings("owner");
-  const { data: nearbyWalkers = [] } = useNearbyWalkers();
+  const { data: realDogs = [], isLoading: dogsLoading } = useDogs();
+  const { data: realBookings = [] } = useBookings("owner");
+  const { data: realWalkers = [] } = useNearbyWalkers();
   const addDog = useAddDog();
   const [showAddDog, setShowAddDog] = useState(false);
   const [newDogName, setNewDogName] = useState("");
   const [newDogBreed, setNewDogBreed] = useState("");
 
-  const displayName = profile?.first_name || "Propriétaire";
-  const upcomingBookings = bookings
-    .filter(b => b.status === "confirmed" || b.status === "pending")
-    .slice(0, 3)
-    .map(b => ({
-      id: b.id,
-      dogName: (b as any).dogs?.name || "Chien",
-      date: b.scheduled_date,
-      time: b.scheduled_time,
-      duration: `${b.duration_minutes || 30} min`,
-      status: (b.status === "confirmed" ? "confirmée" : "en_attente") as "confirmée" | "en_attente",
-    }));
+  const isDemo = !user;
+  const dogs = isDemo ? mockDogs : realDogs;
+  const bookings = isDemo ? mockBookings : realBookings;
+  const nearbyWalkers = isDemo ? mockNearbyWalkers : realWalkers;
+  const displayProfile = isDemo ? mockProfile : profile;
+  const displayName = displayProfile?.first_name || "Propriétaire";
+
+  const upcomingBookings = isDemo
+    ? mockUpcomingBookings
+    : bookings
+        .filter(b => b.status === "confirmed" || b.status === "pending")
+        .slice(0, 3)
+        .map(b => ({
+          id: b.id,
+          dogName: (b as any).dogs?.name || "Chien",
+          date: b.scheduled_date,
+          time: b.scheduled_time,
+          duration: `${b.duration_minutes || 30} min`,
+          status: (b.status === "confirmed" ? "confirmée" : "en_attente") as "confirmée" | "en_attente",
+        }));
 
   const handleAddDog = async () => {
+    if (!user) return toast.error("Connectez-vous pour ajouter un chien");
     if (!newDogName.trim()) return toast.error("Nom du chien requis");
     try {
       await addDog.mutateAsync({ name: newDogName, breed: newDogBreed || null });
@@ -61,6 +69,12 @@ const OwnerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
+      {isDemo && (
+        <div className="bg-warning/10 border-b border-warning/20 px-4 py-2 text-center">
+          <span className="text-xs font-bold text-warning">🎭 Mode Démo — Connectez-vous pour vos vraies données</span>
+        </div>
+      )}
+
       <div className="relative">
         <DashboardHeader title="🐾 DogWalking Hub" notificationCount={bookings.filter(b => b.status === "pending").length} />
         <img src={walkerHero} alt="Mes chiens" className="w-full h-56 object-cover" width={800} height={512} />
@@ -69,7 +83,7 @@ const OwnerDashboard = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="bg-card rounded-2xl shadow-elevated p-4 flex items-center gap-4">
             <div className="relative">
-              <img src={profile?.avatar_url || avatarWalker} alt={displayName} className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
+              <img src={displayProfile?.avatar_url || avatarWalker} alt={displayName} className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
               <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full gradient-accent border-2 border-card flex items-center justify-center">
                 <span className="text-[8px] text-white">✓</span>
               </div>
@@ -86,12 +100,11 @@ const OwnerDashboard = () => {
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
           className="gradient-accent text-white rounded-2xl p-3.5 flex items-center justify-center gap-2 font-bold shadow-card">
           <CheckCircle2 className="w-5 h-5" />
-          {profile?.bio ? "Profil Complet 100%" : "Complétez votre profil"}
+          {displayProfile?.bio ? "Profil Complet 100%" : "Complétez votre profil"}
         </motion.div>
 
         <QuickActions role="owner" />
 
-        {/* Dogs section */}
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
             <h3 className="font-bold text-foreground">🐕 Mes Chiens</h3>
@@ -118,11 +131,11 @@ const OwnerDashboard = () => {
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            {dogsLoading && <div className="col-span-2 text-center text-muted-foreground text-sm py-4">Chargement...</div>}
+            {!isDemo && dogsLoading && <div className="col-span-2 text-center text-muted-foreground text-sm py-4">Chargement...</div>}
             {dogs.map(dog => (
               <DogCard key={dog.id} name={dog.name} breed={dog.breed || "Race inconnue"} image={dog.photo_url || dogGolden} emoji="🐕" status="Actif" />
             ))}
-            {!dogsLoading && dogs.length === 0 && (
+            {!isDemo && !dogsLoading && dogs.length === 0 && (
               <div className="col-span-2 text-center text-muted-foreground text-sm py-4">Ajoutez votre premier chien !</div>
             )}
           </div>
@@ -138,7 +151,7 @@ const OwnerDashboard = () => {
           </div>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { value: String(completedBookings), label: "Balades" },
+              { value: isDemo ? "12" : String(completedBookings), label: "Balades" },
               { value: `${dogs.length}`, label: "Chiens" },
               { value: String(upcomingBookings.length), label: "À venir" },
             ].map((s) => (
@@ -152,25 +165,23 @@ const OwnerDashboard = () => {
 
         <WeatherWidget temp={18} condition="sunny" recommendation="Parfait pour promener vos chiens !" />
 
-        {upcomingBookings.length > 0 && <UpcomingBookings bookings={upcomingBookings} />}
+        <UpcomingBookings bookings={upcomingBookings} />
 
-        {nearbyWalkers.length > 0 && (
-          <div className="space-y-2.5">
-            <h3 className="font-bold text-foreground px-1">🏃 Promeneurs à proximité</h3>
-            {nearbyWalkers.slice(0, 3).map((w: any) => (
-              <NearbyWalkerCard
-                key={w.id}
-                name={`${w.profiles?.first_name || "Walker"} ${(w.profiles?.last_name || "")[0] || ""}.`}
-                rating={Number(w.rating || 0)}
-                reviews={w.total_reviews || 0}
-                distance="~"
-                price={`${w.hourly_rate || 15}€`}
-                avatar={w.profiles?.avatar_url || undefined}
-                badges={w.verified ? ["Certifié"] : []}
-              />
-            ))}
-          </div>
-        )}
+        <div className="space-y-2.5">
+          <h3 className="font-bold text-foreground px-1">🏃 Promeneurs à proximité</h3>
+          {nearbyWalkers.slice(0, 3).map((w: any) => (
+            <NearbyWalkerCard
+              key={w.id}
+              name={`${w.profiles?.first_name || "Walker"} ${(w.profiles?.last_name || "")[0] || ""}.`}
+              rating={Number(w.rating || 0)}
+              reviews={w.total_reviews || 0}
+              distance="~2 km"
+              price={`${w.hourly_rate || 15}€`}
+              avatar={w.profiles?.avatar_url || undefined}
+              badges={w.verified ? ["Certifié"] : []}
+            />
+          ))}
+        </div>
 
         <motion.button
           whileTap={{ scale: 0.97 }}

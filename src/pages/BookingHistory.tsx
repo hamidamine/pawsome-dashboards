@@ -1,10 +1,13 @@
 import BottomNav from "@/components/dashboard/BottomNav";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { Calendar, Clock, MapPin, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useBookings } from "@/hooks/useBookings";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { mockBookings } from "@/data/mockData";
 
 const statusLabels: Record<string, { label: string; color: string; icon: typeof CheckCircle2 }> = {
   pending: { label: "En attente", color: "bg-warning/12 text-warning", icon: Clock },
@@ -15,7 +18,11 @@ const statusLabels: Record<string, { label: string; color: string; icon: typeof 
 };
 
 const BookingHistory = ({ role }: { role: "owner" | "walker" }) => {
-  const { data: bookings = [], isLoading } = useBookings(role);
+  const { user } = useAuth();
+  const { data: realBookings = [], isLoading } = useBookings(role);
+  const navigate = useNavigate();
+  const isDemo = !user;
+  const bookings = isDemo ? mockBookings : realBookings;
 
   const formatDate = (d: string) => {
     try { return format(new Date(d), "EEE d MMM", { locale: fr }); }
@@ -24,14 +31,16 @@ const BookingHistory = ({ role }: { role: "owner" | "walker" }) => {
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
-      <div className="gradient-primary px-4 pt-14 pb-6">
-        <DashboardHeader title="📋 Historique" notificationCount={0} />
-        <h1 className="text-2xl font-black text-white mt-2">Mes Réservations</h1>
-        <p className="text-white/70 text-sm mt-1">{bookings.length} réservation{bookings.length > 1 ? "s" : ""}</p>
+      <div className="gradient-primary px-4 pt-14 pb-6 relative">
+        <button onClick={() => navigate(`/${role}`)} className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+        <h1 className="text-2xl font-black text-white mt-2 text-center">📋 Mes Réservations</h1>
+        <p className="text-white/70 text-sm mt-1 text-center">{bookings.length} réservation{bookings.length > 1 ? "s" : ""}</p>
       </div>
 
       <div className="px-4 -mt-3 space-y-2">
-        {isLoading && <div className="text-center text-muted-foreground text-sm py-10">Chargement...</div>}
+        {!isDemo && isLoading && <div className="text-center text-muted-foreground text-sm py-10">Chargement...</div>}
         {!isLoading && bookings.length === 0 && (
           <div className="text-center text-muted-foreground text-sm py-10">Aucune réservation</div>
         )}

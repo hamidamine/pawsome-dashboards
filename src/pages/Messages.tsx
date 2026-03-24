@@ -1,24 +1,38 @@
 import BottomNav from "@/components/dashboard/BottomNav";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { motion } from "framer-motion";
-import { Send, Paperclip, Phone, Video } from "lucide-react";
+import { Send, Paperclip, Phone, Video, ArrowLeft, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConversations, useChatMessages, useSendMessage } from "@/hooks/useMessages";
 import avatarWalker from "@/assets/avatar-walker.jpg";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+
+const mockConversations = [
+  { id: "demo-c1", first_name: "Lucas", last_name: "Martin", avatar_url: null, lastMessage: "Bonjour ! Max est prêt pour la balade ?", lastTime: new Date().toISOString(), unread: 2 },
+  { id: "demo-c2", first_name: "Sophie", last_name: "Bernard", avatar_url: null, lastMessage: "Merci pour la balade d'aujourd'hui ! 🐾", lastTime: new Date(Date.now() - 3600000).toISOString(), unread: 0 },
+  { id: "demo-c3", first_name: "Emma", last_name: "Petit", avatar_url: null, lastMessage: "À quelle heure demain ?", lastTime: new Date(Date.now() - 7200000).toISOString(), unread: 1 },
+];
 
 const Messages = ({ role }: { role: "owner" | "walker" }) => {
   const [activeConv, setActiveConv] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
   const { user } = useAuth();
-  const { data: conversations = [], isLoading: convsLoading } = useConversations();
-  const { data: chatMessages = [] } = useChatMessages(activeConv);
+  const navigate = useNavigate();
+  const { data: realConversations = [], isLoading: convsLoading } = useConversations();
+  const { data: chatMessages = [] } = useChatMessages(activeConv && !activeConv.startsWith("demo") ? activeConv : null);
   const sendMessage = useSendMessage();
+
+  const isDemo = !user;
+  const conversations = isDemo ? mockConversations : realConversations;
 
   const handleSend = () => {
     if (!messageText.trim() || !activeConv) return;
+    if (isDemo) {
+      setMessageText("");
+      return;
+    }
     sendMessage.mutate({ receiverId: activeConv, content: messageText.trim() });
     setMessageText("");
   };
@@ -31,6 +45,14 @@ const Messages = ({ role }: { role: "owner" | "walker" }) => {
   if (activeConv) {
     const conv = conversations.find(c => c.id === activeConv);
     const displayName = conv ? `${conv.first_name} ${conv.last_name || ""}`.trim() : "Chat";
+
+    const demoMessages = isDemo ? [
+      { id: "dm1", sender_id: "other", receiver_id: "me", content: "Bonjour ! Comment va Max aujourd'hui ?", created_at: new Date(Date.now() - 600000).toISOString(), read: true },
+      { id: "dm2", sender_id: "me", receiver_id: "other", content: "Il est en pleine forme ! Prêt pour sa balade 🐕", created_at: new Date(Date.now() - 300000).toISOString(), read: true },
+      { id: "dm3", sender_id: "other", receiver_id: "me", content: "Super, je serai là dans 10 minutes !", created_at: new Date().toISOString(), read: false },
+    ] : [];
+
+    const displayMessages = isDemo ? demoMessages : chatMessages;
 
     return (
       <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto flex flex-col">
@@ -49,29 +71,32 @@ const Messages = ({ role }: { role: "owner" | "walker" }) => {
         </div>
 
         <div className="flex-1 px-4 py-4 space-y-3 overflow-y-auto">
-          {chatMessages.length === 0 && (
+          {displayMessages.length === 0 && (
             <div className="text-center text-muted-foreground text-sm py-10">Aucun message. Commencez la conversation !</div>
           )}
-          {chatMessages.map((msg, i) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(i * 0.02, 0.5) }}
-              className={`flex ${msg.sender_id === user?.id ? "justify-end" : "justify-start"}`}
-            >
-              <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl ${
-                msg.sender_id === user?.id
-                  ? "gradient-primary text-white rounded-br-md"
-                  : "bg-card shadow-card text-foreground rounded-bl-md"
-              }`}>
-                <p className="text-sm">{msg.content}</p>
-                <p className={`text-[9px] mt-1 ${msg.sender_id === user?.id ? "text-white/60" : "text-muted-foreground"}`}>
-                  {formatTime(msg.created_at || "")}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+          {displayMessages.map((msg, i) => {
+            const isMine = isDemo ? msg.sender_id === "me" : msg.sender_id === user?.id;
+            return (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(i * 0.02, 0.5) }}
+                className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+              >
+                <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl ${
+                  isMine
+                    ? "gradient-primary text-white rounded-br-md"
+                    : "bg-card shadow-card text-foreground rounded-bl-md"
+                }`}>
+                  <p className="text-sm">{msg.content}</p>
+                  <p className={`text-[9px] mt-1 ${isMine ? "text-white/60" : "text-muted-foreground"}`}>
+                    {formatTime(msg.created_at || "")}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
         <div className="bg-card border-t border-border px-4 py-3 flex items-center gap-2">
@@ -97,15 +122,20 @@ const Messages = ({ role }: { role: "owner" | "walker" }) => {
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-lg mx-auto">
-      <div className="gradient-primary px-4 pt-14 pb-6">
-        <DashboardHeader title="💬 Messages" notificationCount={conversations.reduce((s, c) => s + c.unread, 0)} />
-        <h1 className="text-2xl font-black text-white mt-2">Messages</h1>
-        <p className="text-white/70 text-sm mt-1">Discutez avec vos {role === "owner" ? "promeneurs" : "clients"}</p>
+      <div className="gradient-primary px-4 pt-14 pb-6 relative">
+        <button onClick={() => navigate(`/${role}`)} className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+        <h1 className="text-2xl font-black text-white mt-2 text-center">💬 Messages</h1>
+        <p className="text-white/70 text-sm mt-1 text-center">Discutez avec vos {role === "owner" ? "promeneurs" : "clients"}</p>
       </div>
       <div className="px-4 -mt-3 space-y-2">
-        {convsLoading && <div className="text-center text-muted-foreground text-sm py-10">Chargement...</div>}
-        {!convsLoading && conversations.length === 0 && (
-          <div className="text-center text-muted-foreground text-sm py-10">Aucune conversation pour le moment</div>
+        {!isDemo && convsLoading && <div className="text-center text-muted-foreground text-sm py-10">Chargement...</div>}
+        {conversations.length === 0 && (
+          <div className="text-center py-16 space-y-3">
+            <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+            <p className="text-muted-foreground text-sm">Aucune conversation pour le moment</p>
+          </div>
         )}
         {conversations.map((conv, i) => (
           <motion.button
